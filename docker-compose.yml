@@ -1,0 +1,49 @@
+services:
+  voice-service:
+    build:
+      context: .
+      dockerfile: docker/voice-service.Dockerfile
+    container_name: voice-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      PIPER_URL: http://piper:5000
+      PIPER_VOICE: ${PIPER_VOICE:-pt_BR-cadu-medium}
+      TTS_CALLBACK_URL: ${TTS_CALLBACK_URL:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      piper:
+        condition: service_healthy
+    networks:
+      - voice
+
+  piper:
+    build:
+      context: .
+      dockerfile: docker/piper.Dockerfile
+    container_name: voice-piper
+    restart: unless-stopped
+    environment:
+      PIPER_VOICE: ${PIPER_VOICE:-pt_BR-cadu-medium}
+    expose:
+      - "5000"
+    volumes:
+      - piper-data:/data
+    networks:
+      - voice
+    healthcheck:
+      test:
+        ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/info', timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  piper-data:
+
+networks:
+  voice:
+    driver: bridge
