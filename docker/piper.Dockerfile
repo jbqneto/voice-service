@@ -1,5 +1,5 @@
 FROM python:3.12 AS builder
-ARG PIPER_VERSION=1.4.2
+ARG PIPER_VERSION=1.6.0
 RUN apt-get update && apt-get install --yes --no-install-recommends build-essential cmake ninja-build git ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 RUN git clone --depth 1 --branch v${PIPER_VERSION} https://github.com/OHF-Voice/piper1-gpl.git .
